@@ -1,1 +1,41 @@
+name: Auto News Bot
 
+on:
+  schedule:
+    # Запуск каждый час (в 0 минут)
+    - cron: '0 * * * *'
+  workflow_dispatch: # Позволяет запустить вручную для теста
+
+jobs:
+  run-bot:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # Разрешаем боту сохранять файл sent_news.txt
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          pip install requests feedparser beautifulsoup4 google-genai
+
+      - name: Run bot
+        env:
+          MAX_BOT_TOKEN: ${{ secrets.MAX_BOT_TOKEN }}
+          MAX_CHAT_ID: ${{ secrets.MAX_CHAT_ID }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: python publisher.py
+
+      - name: Commit and push sent_news.txt
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add sent_news.txt || true
+          git commit -m "Update sent news history" || true
+          git push || true
