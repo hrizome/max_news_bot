@@ -30,6 +30,7 @@ jobs:
           MAX_BOT_TOKEN: ${{ secrets.MAX_BOT_TOKEN }}
           MAX_CHAT_ID: ${{ secrets.MAX_CHAT_ID }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          PYTHONUNBUFFERED: 1  # <-- ВАЖНО: выводим логи сразу
         run: python publisher.py
 
       - name: Commit and push sent_news.txt
