@@ -192,8 +192,8 @@ def publish_to_max(text):
         return False
 
 if __name__ == "__main__":
-    # Случайная задержка от 10 до 60 секунд для имитации живого редактора
-    delay = random.randint(10, 60) 
+    # Случайная задержка от 3 до 10 минут для имитации живого редактора
+    delay = random.randint(180, 600) 
     print(f"⏳ Пауза {delay} секунд (имитация живого редактора)...")
     time.sleep(delay)
     
