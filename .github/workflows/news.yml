@@ -2,22 +2,22 @@ name: Auto News Bot
 
 on:
   schedule:
-    # Запуск каждый час (в 0 минут)
     - cron: '0 * * * *'
-  workflow_dispatch: # Позволяет запустить вручную для теста
+  workflow_dispatch:
 
 jobs:
   run-bot:
     runs-on: ubuntu-latest
     permissions:
-      contents: write # Разрешаем боту сохранять файл sent_news.txt
+      contents: write
+    timeout-minutes: 5 # <-- Если скрипт зависнет, он умрет через 5 минут
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4 # <-- Обновили версию
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5 # <-- Обновили версию
         with:
           python-version: '3.10'
 
