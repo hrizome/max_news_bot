@@ -2,7 +2,7 @@ name: Auto News Bot
 
 on:
   schedule:
-    - cron: '0,30 * * * *'
+    - cron: '17,47 * * * *'
   workflow_dispatch:
 
 jobs:
