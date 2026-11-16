@@ -11,7 +11,7 @@ from google import genai
 os.environ['NO_PROXY'] = '*'
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-# Ключи берутся из Secrets GitHub
+# Получение ключей из переменных окружения
 MAX_BOT_TOKEN = os.environ.get("MAX_BOT_TOKEN")
 MAX_CHAT_ID = os.environ.get("MAX_CHAT_ID")
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
@@ -22,16 +22,19 @@ HISTORY_FILE = "sent_news.txt"
 client = genai.Client(api_key=GEMINI_API_KEY)
 
 def load_sent_news():
+    """Загружает список уже отправленных ссылок из файла."""
     if not os.path.exists(HISTORY_FILE):
         return set()
     with open(HISTORY_FILE, 'r', encoding='utf-8') as f:
         return set(line.strip() for line in f)
 
 def save_sent_news(link):
+    """Добавляет ссылку в историю отправленных."""
     with open(HISTORY_FILE, 'a', encoding='utf-8') as f:
         f.write(f"{link}\n")
 
 def get_ai_summary(link):
+    """Извлекает краткий пересказ новости с сайта."""
     try:
         headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'}
         response = requests.get(link, headers=headers, verify=False, timeout=15)
@@ -53,6 +56,7 @@ def get_ai_summary(link):
         return None
 
 def get_best_news():
+    """Основная логика выбора и подготовки новости."""
     print("Читаю RSS-ленту...")
     feed = feedparser.parse(RSS_URL)
     
@@ -71,7 +75,17 @@ def get_best_news():
     print("Проверяю наличие текста у новостей...")
     valid_entries = []
     
+    # Стоп-слова для исключения нежелательных тем
+    stop_words = ["футбол", "хоккей", "спорт", "кубок", "чемпион", "матч", "олимпиад", "салават", "игрок", "тренер"]
+
     for entry in entries_to_analyze:
+        title_lower = entry.title.lower()
+        
+        # Пропускаем новости, содержащие стоп-слова
+        if any(word in title_lower for word in stop_words):
+            print(f"⛔ Пропускаю спорт/неважное: {entry.title}")
+            continue
+
         summary = get_ai_summary(entry.link)
         
         if not summary:
@@ -92,6 +106,7 @@ def get_best_news():
     titles_list = "\n".join([f"{i+1}. {entry.title}" for i, entry in enumerate(valid_entries)])
     print(f"Отправляю {len(valid_entries)} заголовков в Gemini...")
     
+    # Формирование запроса для ИИ
     prompt = f"""
     Ты — главный редактор новостного канала для простых людей в России.
     Твоя задача: выбрать из списка ОДНУ самую важную новость.
@@ -137,6 +152,7 @@ def get_best_news():
     
     print(f"🏆 Выбрана новость: {title}")
     
+    # Выбор эмодзи в зависимости от темы
     emoji = "📰"
     if "БПЛА" in title or "атака" in title:
         emoji = "🚨"
@@ -145,6 +161,7 @@ def get_best_news():
     elif "экономик" in title.lower() or "рубл" in title or "цена" in title:
         emoji = "📈"
 
+    # Формирование финального текста поста
     post_text = f"{emoji} **{title}**\n\n"
     post_text += f"{ai_summary}\n\n"
     post_text += f"[Подробнее]({link})"
@@ -152,6 +169,7 @@ def get_best_news():
     return post_text, link
 
 def publish_to_max(text):
+    """Отправляет готовый текст в канал MAX."""
     url = f"https://platform-api2.max.ru/messages?chat_id={MAX_CHAT_ID}"
     headers = {
         "Authorization": MAX_BOT_TOKEN,
@@ -174,8 +192,7 @@ def publish_to_max(text):
         return False
 
 if __name__ == "__main__":
-    # Случайная задержка от 0 до 240 секунд (4 минуты)
-    # Ограничено 4 минутами, чтобы GitHub Actions не убил процесс по таймауту
+    # Случайная задержка от 10 до 60 секунд для имитации живого редактора
     delay = random.randint(10, 60) 
     print(f"⏳ Пауза {delay} секунд (имитация живого редактора)...")
     time.sleep(delay)
