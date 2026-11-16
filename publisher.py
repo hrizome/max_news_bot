@@ -1,18 +1,20 @@
+import os
+import time
+import random
 import requests
 import urllib3
 import feedparser
 import re
-import os
-os.environ['NO_PROXY'] = '*' # <-- ДОБАВЬТЕ ЭТУ СТРОКУ ПЕРВОЙ
 from bs4 import BeautifulSoup
 from google import genai
 
+os.environ['NO_PROXY'] = '*'
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-# --- ВАШИ КЛЮЧИ (ВСТАВЬТЕ НОВЫЕ!) ---
-MAX_BOT_TOKEN = "f9LHodD0cOIshsPFhJY9QS97BIti5pqfuxsCH04w3NFo5w8ZvZeAE0ZpXmReJZ5GBGw3rdKtygkGrXI7hFHY"
-MAX_CHAT_ID = -72654091307543
-GEMINI_API_KEY = "AQ.Ab8RN6L20Jj9A87Sf_5KM9DTMuW1CEaCafDJcR4Zl1Qq1LDtsA" 
+# Ключи берутся из Secrets GitHub
+MAX_BOT_TOKEN = os.environ.get("f9LHodD0cOIshsPFhJY9QS97BIti5pqfuxsCH04w3NFo5w8ZvZeAE0ZpXmReJZ5GBGw3rdKtygkGrXI7hFHY")
+MAX_CHAT_ID = os.environ.get("-72654091307543")
+GEMINI_API_KEY = os.environ.get("AQ.Ab8RN6L20Jj9A87Sf_5KM9DTMuW1CEaCafDJcR4Zl1Qq1LDtsA")
 
 RSS_URL = "https://ria.ru/export/rss2/archive/index.xml"
 HISTORY_FILE = "sent_news.txt"
@@ -65,26 +67,19 @@ def get_best_news():
         print("🤷‍♂️ Новых новостей нет.")
         return None
 
-    # Берем для анализа не больше 10 заголовков
     entries_to_analyze = new_entries[:10]
-    
-    # НОВАЯ ЛОГИКА: Проверяем, у каких новостей есть хоть какой-то текст
     print("Проверяю наличие текста у новостей...")
     valid_entries = []
     
     for entry in entries_to_analyze:
-        # Пытаемся достать пересказ с сайта
         summary = get_ai_summary(entry.link)
         
-        # Если пересказа нет, смотрим описание в RSS
         if not summary:
             description = entry.get('summary', '') or entry.get('description', '')
             cleanr = re.compile('<.*?>')
             summary = re.sub(cleanr, '', description).strip()
             
-        # Если текст найден (длиннее 10 символов), добавляем новость в список валидных
         if summary and len(summary) > 10:
-            # Сохраняем текст прямо в объект новости, чтобы не парсить сайт дважды
             entry.custom_summary = summary
             valid_entries.append(entry)
         else:
@@ -94,9 +89,7 @@ def get_best_news():
         print("🤷‍♂️ Нет новостей с нормальным текстом.")
         return None
 
-    # Формируем список для ИИ только из валидных новостей
     titles_list = "\n".join([f"{i+1}. {entry.title}" for i, entry in enumerate(valid_entries)])
-    
     print(f"Отправляю {len(valid_entries)} заголовков в Gemini...")
     
     prompt = f"""
@@ -140,7 +133,6 @@ def get_best_news():
 
     title = best_entry.title
     link = best_entry.link
-    # Берем текст, который мы уже сохранили при проверке
     ai_summary = best_entry.custom_summary
     
     print(f"🏆 Выбрана новость: {title}")
@@ -172,7 +164,7 @@ def publish_to_max(text):
     }
     
     print("Отправляю запрос в MAX...")
-    response = requests.post(url, headers=headers, json=payload, verify=False)
+    response = requests.post(url, headers=headers, json=payload, verify=False, timeout=15)
     
     if response.status_code == 200:
         print("✅ Пост успешно опубликован!")
@@ -182,6 +174,12 @@ def publish_to_max(text):
         return False
 
 if __name__ == "__main__":
+    # Случайная задержка от 0 до 240 секунд (4 минуты)
+    # Ограничено 4 минутами, чтобы GitHub Actions не убил процесс по таймауту
+    delay = random.randint(0, 240) 
+    print(f"⏳ Пауза {delay} секунд (имитация живого редактора)...")
+    time.sleep(delay)
+    
     result = get_best_news()
     if result:
         news_text, news_link = result
