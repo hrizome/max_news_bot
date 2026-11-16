@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-    timeout-minutes: 15 # <-- Если скрипт зависнет, он умрет через 5 минут
+    timeout-minutes: 20 # <-- Если скрипт зависнет, он умрет через 5 минут
 
     steps:
       - name: Checkout code
