@@ -176,7 +176,7 @@ def publish_to_max(text):
 if __name__ == "__main__":
     # Случайная задержка от 0 до 240 секунд (4 минуты)
     # Ограничено 4 минутами, чтобы GitHub Actions не убил процесс по таймауту
-    delay = random.randint(0, 240) 
+    delay = random.randint(10, 60) 
     print(f"⏳ Пауза {delay} секунд (имитация живого редактора)...")
     time.sleep(delay)
     
