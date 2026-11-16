@@ -12,9 +12,9 @@ os.environ['NO_PROXY'] = '*'
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 # Ключи берутся из Secrets GitHub
-MAX_BOT_TOKEN = os.environ.get("f9LHodD0cOIshsPFhJY9QS97BIti5pqfuxsCH04w3NFo5w8ZvZeAE0ZpXmReJZ5GBGw3rdKtygkGrXI7hFHY")
-MAX_CHAT_ID = os.environ.get("-72654091307543")
-GEMINI_API_KEY = os.environ.get("AQ.Ab8RN6Ibofw4jlxG38BYegfi-KQKTkr5UNMLYYSgd_G7-kmgSA")
+MAX_BOT_TOKEN = os.environ.get("MAX_BOT_TOKEN")
+MAX_CHAT_ID = os.environ.get("MAX_CHAT_ID")
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
 
 RSS_URL = "https://ria.ru/export/rss2/archive/index.xml"
 HISTORY_FILE = "sent_news.txt"
