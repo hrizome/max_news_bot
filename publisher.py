@@ -3,6 +3,7 @@ import urllib3
 import feedparser
 import re
 import os
+os.environ['NO_PROXY'] = '*' # <-- ДОБАВЬТЕ ЭТУ СТРОКУ ПЕРВОЙ
 from bs4 import BeautifulSoup
 from google import genai
 
